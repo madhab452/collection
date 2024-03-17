@@ -39,14 +39,21 @@ func (l *Lexer) NextToken() token.Token {
 	l.skipWhitespace()
 
 	switch l.ch {
+	case '!':
+		if peekChar := l.peekChar(); peekChar == '=' {
+			tok = newToken(token.NOT_EQ, string(l.ch)+string(peekChar))
+			l.readChar() // advance the cursor as we already read the next char
+		} else {
+			tok = newToken(token.BANG, string(l.ch))
+		}
 	case '=':
-		tok = newToken(token.EQ, l.ch)
+		tok = newToken(token.EQ, string(l.ch))
 	case '<':
-		tok = newToken(token.LT, l.ch)
+		tok = newToken(token.LT, string(l.ch))
 	case '>':
-		tok = newToken(token.GT, l.ch)
+		tok = newToken(token.GT, string(l.ch))
 	case ',':
-		tok = newToken(token.COMMA, ',')
+		tok = newToken(token.COMMA, string(l.ch))
 	case 0:
 		tok.Literal = ""
 		tok.Type = token.EOF
@@ -60,7 +67,7 @@ func (l *Lexer) NextToken() token.Token {
 			tok.Literal = l.readNumber()
 			return tok
 		} else {
-			tok = newToken(token.ILLEGAL, l.ch)
+			tok = newToken(token.ILLEGAL, string(l.ch))
 		}
 	}
 
@@ -69,7 +76,7 @@ func (l *Lexer) NextToken() token.Token {
 	return tok
 }
 
-func newToken(tokType token.TokenType, val byte) token.Token {
+func newToken(tokType token.TokenType, val string) token.Token {
 	return token.Token{
 		Type:    tokType,
 		Literal: string(val),

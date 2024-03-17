@@ -15,6 +15,7 @@ const (
 	LT     = "<"
 	GT     = ">"
 	COMMA  = ","
+	BANG   = "!"
 
 	// Delimiters
 	LPAREN = "("

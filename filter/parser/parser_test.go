@@ -7,10 +7,7 @@ import (
 )
 
 func TestParse(t *testing.T) {
-
-	input := `
-    field1 = 100 and field2 > 10 
-  `
+	input := `field_123 = 10 and fieldy > 10 and field.z != 0`
 
 	p := New(lexer.New(input))
 	pf := p.ParseFilter()
@@ -18,9 +15,9 @@ func TestParse(t *testing.T) {
 	if pf == nil {
 		t.Fatalf("ParseFilter() returned nil")
 	}
-	if len(pf.Statements) != 2 {
-		t.Errorf("pf.AndStatements does not contain 2 statements. got=%d", len(pf.Statements))
+	expectedStmtLen := 3
+	if len(pf.Statements) != expectedStmtLen {
+		t.Errorf("pf.AndStatements does not contain %d statements. got=%d", expectedStmtLen, len(pf.Statements))
 		t.Fatalf("got: %+v", pf.Statements[0])
 	}
-
 }

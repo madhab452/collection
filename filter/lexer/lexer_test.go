@@ -7,7 +7,7 @@ import (
 )
 
 func TestNextToken(t *testing.T) {
-	input := `field_123 = 10 and fieldy > 10`
+	input := `field_123 = 10 and fieldy > 10 and field.z != 0`
 
 	testCases := []struct {
 		Literal string
@@ -39,6 +39,22 @@ func TestNextToken(t *testing.T) {
 		},
 		{
 			Literal: "10",
+			Type:    token.INT,
+		},
+		{
+			Literal: "and",
+			Type:    token.AND,
+		},
+		{
+			Literal: "field.z",
+			Type:    token.IDENT,
+		},
+		{
+			Literal: "!=",
+			Type:    token.NOT_EQ,
+		},
+		{
+			Literal: "0",
 			Type:    token.INT,
 		},
 	}

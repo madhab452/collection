@@ -66,7 +66,7 @@ func (p *Parser) parseStmt() *AndStatement {
 	p.nextToken()
 
 	switch p.curToken.Type {
-	case token.EQ, token.GT, token.LT:
+	case token.EQ, token.GT, token.LT, token.NOT_EQ:
 		andStmt.Operator = p.curToken
 	default:
 		p.errors = append(p.errors, fmt.Sprintf("invalid operator: got %v", p.curToken.Literal))
