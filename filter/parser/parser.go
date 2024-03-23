@@ -43,11 +43,22 @@ func (p *Parser) nextToken() {
 	p.peekToken = p.l.NextToken()
 }
 
+func (p *Parser) appendError(err error) {
+	if err != nil {
+		p.errors = append(p.errors, err.Error())
+	}
+}
+
 func (p *Parser) ParseFilter() *ParsedFilter {
 	filter := &ParsedFilter{}
 
 	for p.curToken.Type != token.EOF {
-		stmt := p.parseStmt()
+		stmt, err := p.parseStmt()
+		if err != nil {
+			p.appendError(err)
+			return nil
+		}
+
 		if stmt != nil {
 			filter.Statements = append(filter.Statements, stmt)
 		}
@@ -58,7 +69,7 @@ func (p *Parser) ParseFilter() *ParsedFilter {
 	return filter
 }
 
-func (p *Parser) parseStmt() *AndStatement {
+func (p *Parser) parseStmt() (*AndStatement) {
 	andStmt := &AndStatement{
 		Field: p.curToken,
 	}
@@ -69,16 +80,33 @@ func (p *Parser) parseStmt() *AndStatement {
 	case token.EQ, token.GT, token.LT, token.NOT_EQ:
 		andStmt.Operator = p.curToken
 	default:
-		p.errors = append(p.errors, fmt.Sprintf("invalid operator: got %v", p.curToken.Literal))
-		return nil
+		p.appendError(fmt.Errorf("invalid operator: got %v", p.curToken.Literal))
+		return nil, 
 	}
 
 	p.nextToken()
-	andStmt.Value = p.curToken.Literal
+	v, err := p.parseValue()
+	andStmt.Value = p.parseValue()
 
 	if p.peekToken.Type == token.AND {
 		p.nextToken()
 	}
 
 	return andStmt
+}
+
+func (p *Parser) parseValue() (*Value, error) {
+	x := new(Value)
+
+	switch p.curToken.Type {
+	case token.TRUE, token.FALSE:
+		x.T = BoolType
+		x.V = p.curToken.Literal
+	case token.DQUOTE:
+		x.T = StringType
+		x.V = p.curToken.Literal
+		return x, nil
+	default:
+		return nil, fmt.Errorf("unsupported value: %s", p.curToken.Literal)
+	}
 }

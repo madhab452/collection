@@ -16,15 +16,18 @@ const (
 	GT     = ">"
 	COMMA  = ","
 	BANG   = "!"
+	DQUOTE = "\""
 
 	// Delimiters
 	LPAREN = "("
 	RPAREN = ")"
 
 	// Keywords
-	AND = "AND"
-	OR  = "OR"
-	IN  = "IN"
+	AND   = "AND"
+	OR    = "OR"
+	IN    = "IN"
+	TRUE  = "TRUE"
+	FALSE = "FALSE"
 )
 
 type Token struct {
@@ -33,9 +36,11 @@ type Token struct {
 }
 
 var keywords = map[string]TokenType{
-	"and": AND,
-	"or":  OR,
-	"in":  IN,
+	"and":   AND,
+	"or":    OR,
+	"in":    IN,
+	"true":  TRUE,
+	"false": FALSE,
 }
 
 func LookupIdent(ident string) TokenType {
