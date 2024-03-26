@@ -3,31 +3,31 @@ package token
 type TokenType string
 
 const (
-	ILLEGAL = "ILLEGAL"
-	EOF     = "EOF"
+	ILLEGAL TokenType = "ILLEGAL"
+	EOF     TokenType = "EOF"
 	// Identifiers + literals
-	IDENT = "IDENT" // fieldx, fieldy
-	INT   = "INT"
+	IDENT TokenType = "IDENT" // fieldx, fieldy
+	INT   TokenType = "INT"
 
 	// Operators
-	EQ     = "="
-	NOT_EQ = "!=" // todo: not suported yet
-	LT     = "<"
-	GT     = ">"
-	COMMA  = ","
-	BANG   = "!"
-	DQUOTE = "\""
+	EQ     TokenType = "="
+	NOT_EQ TokenType = "!=" // todo: not suported yet
+	LT     TokenType = "<"
+	GT     TokenType = ">"
+	COMMA  TokenType = ","
+	BANG   TokenType = "!"
+	DQUOTE TokenType = "\""
 
 	// Delimiters
-	LPAREN = "("
-	RPAREN = ")"
+	LPAREN TokenType = "("
+	RPAREN TokenType = ")"
 
 	// Keywords
-	AND   = "AND"
-	OR    = "OR"
-	IN    = "IN"
-	TRUE  = "TRUE"
-	FALSE = "FALSE"
+	AND   TokenType = "AND"
+	OR    TokenType = "OR"
+	IN    TokenType = "IN"
+	TRUE  TokenType = "TRUE"
+	FALSE TokenType = "FALSE"
 )
 
 type Token struct {

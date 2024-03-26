@@ -1,16 +1,26 @@
 package parser
 
 import (
-	"fmt"
-
 	"github.com/madhab452/collection/filter/lexer"
 	"github.com/madhab452/collection/filter/token"
 )
 
+type Operator token.TokenType
+
+func getValidOps() []Operator {
+	return []Operator{
+		Operator(token.EQ),
+		Operator(token.NOT_EQ),
+		Operator(token.LT),
+		Operator(token.GT),
+		Operator(token.IN),
+	}
+}
+
 type AndStatement struct {
-	Field    token.Token
-	Operator token.Token
-	Value    interface{}
+	Field    string
+	Operator Operator
+	Value    *Value
 }
 
 type ParsedFilter struct {
@@ -23,6 +33,10 @@ type Parser struct {
 	peekToken token.Token
 
 	errors []string
+}
+
+func (p *Parser) Errors() []string {
+	return p.errors
 }
 
 func New(l *lexer.Lexer) *Parser {
@@ -43,25 +57,16 @@ func (p *Parser) nextToken() {
 	p.peekToken = p.l.NextToken()
 }
 
-func (p *Parser) appendError(err error) {
-	if err != nil {
-		p.errors = append(p.errors, err.Error())
-	}
-}
-
 func (p *Parser) ParseFilter() *ParsedFilter {
 	filter := &ParsedFilter{}
 
 	for p.curToken.Type != token.EOF {
-		stmt, err := p.parseStmt()
-		if err != nil {
-			p.appendError(err)
+		stmt := p.parseStmt()
+		if stmt == nil {
 			return nil
 		}
 
-		if stmt != nil {
-			filter.Statements = append(filter.Statements, stmt)
-		}
+		filter.Statements = append(filter.Statements, stmt)
 
 		p.nextToken()
 	}
@@ -69,24 +74,34 @@ func (p *Parser) ParseFilter() *ParsedFilter {
 	return filter
 }
 
-func (p *Parser) parseStmt() (*AndStatement) {
+func (p *Parser) expectPeek(peekToken token.Token, ops []Operator) bool {
+	for _, opv := range ops {
+		if opv == Operator(peekToken.Type) {
+			return true
+		}
+	}
+	p.errors = append(p.errors, "unexpected peek token %+v", peekToken.Literal)
+
+	return false
+}
+
+func (p *Parser) parseStmt() *AndStatement {
 	andStmt := &AndStatement{
-		Field: p.curToken,
+		Field: p.curToken.Literal,
 	}
+
+	if !p.expectPeek(p.peekToken, getValidOps()) {
+		return nil
+	}
+	p.nextToken()
+
+	andStmt.Operator = Operator(p.curToken.Type)
 
 	p.nextToken()
 
-	switch p.curToken.Type {
-	case token.EQ, token.GT, token.LT, token.NOT_EQ:
-		andStmt.Operator = p.curToken
-	default:
-		p.appendError(fmt.Errorf("invalid operator: got %v", p.curToken.Literal))
-		return nil, 
-	}
+	v := p.parseValue()
 
-	p.nextToken()
-	v, err := p.parseValue()
-	andStmt.Value = p.parseValue()
+	andStmt.Value = v
 
 	if p.peekToken.Type == token.AND {
 		p.nextToken()
@@ -95,18 +110,23 @@ func (p *Parser) parseStmt() (*AndStatement) {
 	return andStmt
 }
 
-func (p *Parser) parseValue() (*Value, error) {
-	x := new(Value)
-
+func (p *Parser) parseValue() *Value {
 	switch p.curToken.Type {
 	case token.TRUE, token.FALSE:
-		x.T = BoolType
-		x.V = p.curToken.Literal
+		return newValue(TypeBool, p.curToken.Literal)
 	case token.DQUOTE:
-		x.T = StringType
-		x.V = p.curToken.Literal
-		return x, nil
-	default:
-		return nil, fmt.Errorf("unsupported value: %s", p.curToken.Literal)
+		sentence := p.readSentence()
+		p.nextToken()
+		for p.curToken.Type != token.DQUOTE {
+			p.nextToken()
+		}
+		p.nextToken()
+		return newValue(TypeString, sentence)
 	}
+
+	return nil
+}
+
+func (p *Parser) readSentence() string {
+	return "todo: read sentence"
 }
