@@ -28,6 +28,8 @@ const (
 	IN    TokenType = "IN"
 	TRUE  TokenType = "TRUE"
 	FALSE TokenType = "FALSE"
+
+	STRING TokenType = "STRING"
 )
 
 type Token struct {

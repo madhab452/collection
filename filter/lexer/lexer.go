@@ -54,22 +54,23 @@ func (l *Lexer) NextToken() token.Token {
 		tok = newToken(token.GT, string(l.ch))
 	case ',':
 		tok = newToken(token.COMMA, string(l.ch))
-	case '"':
-		tok = newToken(token.DQUOTE, string(l.ch))
 	case 0:
 		tok.Literal = ""
 		tok.Type = token.EOF
 	default:
-		if isLetter(l.ch) {
+		switch {
+		case isLetter(l.ch):
 			tok.Literal = l.readIdentifier()
 			tok.Type = token.LookupIdent(tok.Literal)
 			return tok
-		} else if isDigit(l.ch) {
+		case isDigit(l.ch):
 			tok.Type = token.INT
 			tok.Literal = l.readNumber()
 			return tok
-		} else {
-			tok = newToken(token.ILLEGAL, string(l.ch))
+		case string(l.ch) == string(token.DQUOTE):
+			tok.Type = token.STRING
+			tok.Literal = l.readString()
+			return tok
 		}
 	}
 
@@ -127,4 +128,15 @@ func (l *Lexer) skipWhitespace() {
 	for l.ch == ' ' || l.ch == '\t' || l.ch == '\n' || l.ch == '\r' {
 		l.readChar()
 	}
+}
+
+func (l *Lexer) readString() string {
+	l.readChar() // skip two quotes start and end
+	defer l.readChar()
+	pos := l.position
+
+	for l.ch != '"' {
+		l.readChar()
+	}
+	return l.input[pos:l.position]
 }
