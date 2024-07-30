@@ -17,14 +17,14 @@ func getValidOps() []Operator {
 	}
 }
 
+type Filter struct {
+	AndStatements []*AndStatement
+}
+
 type AndStatement struct {
 	Field    string
 	Operator Operator
-	Value    *Value
-}
-
-type ParsedFilter struct {
-	Statements []*AndStatement
+	Value    interface{}
 }
 
 type Parser struct {
@@ -57,16 +57,15 @@ func (p *Parser) nextToken() {
 	p.peekToken = p.l.NextToken()
 }
 
-func (p *Parser) ParseFilter() *ParsedFilter {
-	filter := &ParsedFilter{}
-
+func (p *Parser) Parse() *Filter {
+	var filter = &Filter{}
 	for p.curToken.Type != token.EOF {
 		stmt := p.parseStmt()
 		if stmt == nil {
 			return nil
 		}
 
-		filter.Statements = append(filter.Statements, stmt)
+		filter.AndStatements = append(filter.AndStatements, stmt)
 
 		p.nextToken()
 	}
@@ -110,23 +109,10 @@ func (p *Parser) parseStmt() *AndStatement {
 	return andStmt
 }
 
-func (p *Parser) parseValue() *Value {
-	switch p.curToken.Type {
-	case token.TRUE, token.FALSE:
-		return newValue(TypeBool, p.curToken.Literal)
-	case token.DQUOTE:
-		sentence := p.readSentence()
-		p.nextToken()
-		for p.curToken.Type != token.DQUOTE {
-			p.nextToken()
-		}
-		p.nextToken()
-		return newValue(TypeString, sentence)
-	}
-
-	return nil
+func (p *Parser) readSentence() string {
+	return p.curToken.Literal
 }
 
-func (p *Parser) readSentence() string {
-	return "todo: read sentence"
+func (p *Parser) parseValue() interface{} {
+	return p.curToken.Literal
 }
